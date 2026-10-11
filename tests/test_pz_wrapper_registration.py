@@ -35,6 +35,12 @@ def test_all_versioned_pettingzoo_envs_are_registered():
         if re.search(r"_v\d+\.py$", path.name)
     }
 
-    registered = set(gym.envs.registry.keys())
+    registered = {k for k in gym.envs.registry.keys() if k.startswith("pz-")}
+
     missing = sorted(expected_keys - registered)
     assert not missing, f"PettingZoo envs not registered: {missing}"
+
+    # Guard against over-matching: loose globs/regexes (e.g. `_v*.py`) would also
+    # register non-env modules like `record_video.py` as `pz-*` environments.
+    extra = sorted(registered - expected_keys)
+    assert not extra, f"Unexpected extra PettingZoo envs registered: {extra}"
